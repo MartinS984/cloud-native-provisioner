@@ -1,0 +1,28 @@
+# Local .terraform directories and plugins
+**/.terraform/*
+
+# Terraform state files (These must never be committed!)
+*.tfstate
+*.tfstate.*
+
+# Crash log files
+crash.log
+crash.*.log
+
+# Exclude all .tfvars files, which often contain sensitive data like AWS credentials or database passwords
+*.tfvars
+*.tfvars.json
+
+# Ignore override files (used for local testing, not meant for version control)
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+
+# Ignore CLI configuration files
+.terraformrc
+terraform.rc
+
+# OS and Editor generated files
+.DS_Store
+.vscode/
