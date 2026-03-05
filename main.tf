@@ -2,7 +2,7 @@
 
 # 1. Create the VPC
 resource "aws_vpc" "main" {
-  cidr_block           = "10.0.0.0/16"
+  cidr_block           = var.vpc_cidr
   enable_dns_support   = true
   enable_dns_hostnames = true
 
@@ -14,7 +14,7 @@ resource "aws_vpc" "main" {
 # 2. Create a Public Subnet
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = "10.0.1.0/24"
+  cidr_block              = var.public_subnet_cidr
   availability_zone       = "eu-central-1a"
   map_public_ip_on_launch = true
 
@@ -105,7 +105,7 @@ data "aws_ami" "ubuntu" {
 # 8. Create the EC2 Instance
 resource "aws_instance" "web_server" {
   ami                    = data.aws_ami.ubuntu.id
-  instance_type          = "t3.micro" # Free-tier eligible in eu-central-1
+  instance_type          = var.instance_type # Free-tier eligible in eu-central-1
   subnet_id              = aws_subnet.public_subnet.id
   vpc_security_group_ids = [aws_security_group.web_sg.id]
 
