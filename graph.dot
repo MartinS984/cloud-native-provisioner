@@ -1,0 +1,21 @@
+digraph G {
+  rankdir = "RL";
+  node [shape = rect, fontname = "sans-serif"];
+  "data.aws_ami.ubuntu" [label="data.aws_ami.ubuntu"];
+  "aws_instance.web_server" [label="aws_instance.web_server"];
+  "aws_internet_gateway.igw" [label="aws_internet_gateway.igw"];
+  "aws_route_table.public_rt" [label="aws_route_table.public_rt"];
+  "aws_route_table_association.public_assoc" [label="aws_route_table_association.public_assoc"];
+  "aws_security_group.web_sg" [label="aws_security_group.web_sg"];
+  "aws_subnet.public_subnet" [label="aws_subnet.public_subnet"];
+  "aws_vpc.main" [label="aws_vpc.main"];
+  "aws_instance.web_server" -> "data.aws_ami.ubuntu";
+  "aws_instance.web_server" -> "aws_security_group.web_sg";
+  "aws_instance.web_server" -> "aws_subnet.public_subnet";
+  "aws_internet_gateway.igw" -> "aws_vpc.main";
+  "aws_route_table.public_rt" -> "aws_internet_gateway.igw";
+  "aws_route_table_association.public_assoc" -> "aws_route_table.public_rt";
+  "aws_route_table_association.public_assoc" -> "aws_subnet.public_subnet";
+  "aws_security_group.web_sg" -> "aws_vpc.main";
+  "aws_subnet.public_subnet" -> "aws_vpc.main";
+}

@@ -9,10 +9,10 @@ terraform {
 
   # Configures the remote S3 backend with DynamoDB locking
   backend "s3" {
-    bucket         = "ecommerce-capstone-state-martin-123"
+    bucket         = "ecommerce-capstone-state-martin-useast1"
     key            = "capstone/terraform.tfstate"
-    region         = "eu-central-1"
-    dynamodb_table = "ecommerce-terraform-locks"
+    region         = "us-east-1" # <--- This must be us-east-1
+    dynamodb_table = "ecommerce-terraform-locks-useast1"
     encrypt        = true
   }
 }
