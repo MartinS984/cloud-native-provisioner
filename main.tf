@@ -123,3 +123,63 @@ resource "aws_instance" "web_server" {
     Name = "ecommerce-web-server"
   }
 }
+
+# --- Phase 6: Highly Available Architecture ---
+
+# 1. Second Public Subnet (in a different AZ)
+resource "aws_subnet" "public_subnet_2" {
+  vpc_id                  = aws_vpc.main.id
+  cidr_block              = var.public_subnet_2_cidr
+  availability_zone       = "us-east-1b" # Must be different from us-east-1a
+  map_public_ip_on_launch = true
+
+  tags = {
+    Name = "ecommerce-public-subnet-1b"
+  }
+}
+
+# 2. Route Table Association for the second subnet
+resource "aws_route_table_association" "public_assoc_2" {
+  subnet_id      = aws_subnet.public_subnet_2.id
+  route_table_id = aws_route_table.public_rt.id
+}
+
+# 3. Application Load Balancer
+resource "aws_lb" "app_alb" {
+  name               = "ecommerce-app-alb"
+  internal           = false
+  load_balancer_type = "application"
+  security_groups    = [aws_security_group.web_sg.id]
+  subnets            = [aws_subnet.public_subnet.id, aws_subnet.public_subnet_2.id]
+
+  tags = {
+    Name = "ecommerce-alb"
+  }
+}
+
+# 4. Target Group (Where the ALB sends traffic)
+resource "aws_lb_target_group" "web_tg" {
+  name     = "ecommerce-web-tg"
+  port     = 80
+  protocol = "HTTP"
+  vpc_id   = aws_vpc.main.id
+}
+
+# 5. Target Group Attachment (Registers your EC2 instance)
+resource "aws_lb_target_group_attachment" "web_tg_attach" {
+  target_group_arn = aws_lb_target_group.web_tg.arn
+  target_id        = aws_instance.web_server.id
+  port             = 80
+}
+
+# 6. ALB Listener (Rules for incoming traffic)
+resource "aws_lb_listener" "web_listener" {
+  load_balancer_arn = aws_lb.app_alb.arn
+  port              = "80"
+  protocol          = "HTTP"
+
+  default_action {
+    type             = "forward"
+    target_group_arn = aws_lb_target_group.web_tg.arn
+  }
+}

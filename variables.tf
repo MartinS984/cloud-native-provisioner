@@ -23,3 +23,9 @@ variable "instance_type" {
   type        = string
   default     = "t3.micro"
 }
+
+variable "public_subnet_2_cidr" {
+  description = "CIDR block for the second public subnet"
+  type        = string
+  default     = "10.0.2.0/24"
+}
