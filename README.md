@@ -2,6 +2,7 @@
 
 [![Terraform](https://img.shields.io/badge/Terraform-1.5+-623CE4.svg)](https://www.terraform.io/)
 [![AWS](https://img.shields.io/badge/AWS-Cloud-orange.svg)](https://aws.amazon.com/)
+[![Terraform CI/CD Pipeline](https://github.com/MartinS984/cloud-native-provisioner/actions/workflows/terraform.yml/badge.svg)](https://github.com/MartinS984/cloud-native-provisioner/actions/workflows/terraform.yml)
 
 A production-ready Infrastructure as Code (IaC) capstone project. This repository uses Terraform to dynamically provision a secure, highly available, and load-balanced AWS networking and compute architecture.
 
