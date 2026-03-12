@@ -39,13 +39,16 @@ Before deploying this infrastructure, ensure you have the following installed an
 
 ## Backend Initialization
 
-This project requires a remote backend. The following AWS CLI commands were used to provision the state storage in `us-east-1` prior to running Terraform:
+This project requires a remote backend. The following AWS CLI commands can be used to provision the state storage in `us-east-1` prior to running Terraform. 
+
+*Note: S3 bucket names must be globally unique. Replace the `<PLACEHOLDER>` values with your own unique naming convention before running.*
 
 ```bash
-aws s3api create-bucket --bucket ecommerce-capstone-state-martin-useast1 --region us-east-1
-aws s3api put-bucket-versioning --bucket ecommerce-capstone-state-martin-useast1 --versioning-configuration Status=Enabled --region us-east-1
-aws dynamodb create-table --table-name ecommerce-terraform-locks-useast1 --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --billing-mode PAY_PER_REQUEST --region us-east-1
+aws s3api create-bucket --bucket <YOUR_UNIQUE_BUCKET_NAME> --region us-east-1
+aws s3api put-bucket-versioning --bucket <YOUR_UNIQUE_BUCKET_NAME> --versioning-configuration Status=Enabled --region us-east-1
+aws dynamodb create-table --table-name <YOUR_UNIQUE_TABLE_NAME> --attribute-definitions AttributeName=LockID,AttributeType=S --key-schema AttributeName=LockID,KeyType=HASH --billing-mode PAY_PER_REQUEST --region us-east-1
 ```
+Important: After creating your bucket and table, ensure you update the backend "s3" configuration block in your .tf files to match your newly created resource names.
 
 ## Usage and Deployment
 
