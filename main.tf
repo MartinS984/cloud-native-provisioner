@@ -1,6 +1,6 @@
 # --- main.tf ---
 
-# 1. Create the VPC
+#  Create the VPC
 resource "aws_vpc" "main" {
   cidr_block           = var.vpc_cidr
   enable_dns_support   = true
@@ -11,7 +11,7 @@ resource "aws_vpc" "main" {
   }
 }
 
-# 2. Create a Public Subnet
+#  Create a Public Subnet
 resource "aws_subnet" "public_subnet" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_cidr
@@ -23,7 +23,7 @@ resource "aws_subnet" "public_subnet" {
   }
 }
 
-# 3. Create an Internet Gateway
+#  Create an Internet Gateway
 resource "aws_internet_gateway" "igw" {
   vpc_id = aws_vpc.main.id
 
@@ -32,7 +32,7 @@ resource "aws_internet_gateway" "igw" {
   }
 }
 
-# 4. Create a Public Route Table
+#  Create a Public Route Table
 resource "aws_route_table" "public_rt" {
   vpc_id = aws_vpc.main.id
 
@@ -46,13 +46,13 @@ resource "aws_route_table" "public_rt" {
   }
 }
 
-# 5. Associate the Route Table with the Public Subnet
+#  Associate the Route Table with the Public Subnet
 resource "aws_route_table_association" "public_assoc" {
   subnet_id      = aws_subnet.public_subnet.id
   route_table_id = aws_route_table.public_rt.id
 }
 
-# 6. Create a Security Group
+#  Create a Security Group
 resource "aws_security_group" "web_sg" {
   name        = "ecommerce-web-sg"
   description = "Allow HTTP and SSH inbound traffic"
@@ -86,7 +86,60 @@ resource "aws_security_group" "web_sg" {
   }
 }
 
-# 7. Fetch the latest Ubuntu 22.04 AMI
+# --- Phase 7: Auto Scaling Group & Launch Template ---
+
+# 1. Launch Template (The blueprint for new EC2 instances)
+resource "aws_launch_template" "web_template" {
+  name_prefix   = "ecommerce-web-template-"
+  image_id      = data.aws_ami.ubuntu.id
+  instance_type = "t3.micro"
+
+  network_interfaces {
+    associate_public_ip_address = true
+    security_groups             = [aws_security_group.web_sg.id]
+  }
+
+  # The installation script for Apache with IMDSv2 AZ fetching
+  user_data = base64encode(<<-EOF
+              #!/bin/bash
+              apt-get update -y
+              apt-get install -y apache2
+              systemctl start apache2
+              systemctl enable apache2
+              
+              # Fetch the Availability Zone from AWS Metadata
+              TOKEN=$(curl -s -X PUT "http://169.254.169.254/latest/api/token" -H "X-aws-ec2-metadata-token-ttl-seconds: 21600")
+              AZ=$(curl -s -H "X-aws-ec2-metadata-token: $TOKEN" http://169.254.169.254/latest/meta-data/placement/availability-zone)
+              
+              # Write the AZ into the webpage
+              echo "<h1>Cloud-Native Provisioner is Live via ASG!</h1><p>Traffic successfully routed to Availability Zone: <b>$AZ</b></p>" > /var/www/html/index.html
+              EOF
+  )
+
+  tag_specifications {
+    resource_type = "instance"
+    tags = {
+      Name = "ecommerce-asg-web-server"
+    }
+  }
+}
+
+# 2. Auto Scaling Group (The engine that manages the instances)
+resource "aws_autoscaling_group" "web_asg" {
+  name                = "ecommerce-web-asg"
+  desired_capacity    = 2 # We want 2 servers running at all times
+  max_size            = 3 # Scale up to 3 if traffic spikes
+  min_size            = 1 # Never drop below 1
+  vpc_zone_identifier = [aws_subnet.public_subnet.id, aws_subnet.public_subnet_2.id]
+  target_group_arns   = [aws_lb_target_group.web_tg.arn]
+
+  launch_template {
+    id      = aws_launch_template.web_template.id
+    version = "$Latest"
+  }
+}
+
+#  Fetch the latest Ubuntu 22.04 AMI
 data "aws_ami" "ubuntu" {
   most_recent = true
   owners      = ["099720109477"] # Canonical's official AWS account ID
@@ -102,31 +155,8 @@ data "aws_ami" "ubuntu" {
   }
 }
 
-# 8. Create the EC2 Instance
-resource "aws_instance" "web_server" {
-  ami                    = data.aws_ami.ubuntu.id
-  instance_type          = var.instance_type # Free-tier eligible in eu-central-1
-  subnet_id              = aws_subnet.public_subnet.id
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
 
-  # This script runs once on the very first boot
-  user_data = <<-EOF
-              #!/bin/bash
-              apt-get update -y
-              apt-get install -y apache2
-              systemctl start apache2
-              systemctl enable apache2
-              echo "<h1>Cloud-Native Provisioner is Live!</h1>" > /var/www/html/index.html
-              EOF
-
-  tags = {
-    Name = "ecommerce-web-server"
-  }
-}
-
-# --- Phase 6: Highly Available Architecture ---
-
-# 1. Second Public Subnet (in a different AZ)
+#  Second Public Subnet (in a different AZ)
 resource "aws_subnet" "public_subnet_2" {
   vpc_id                  = aws_vpc.main.id
   cidr_block              = var.public_subnet_2_cidr
@@ -138,13 +168,13 @@ resource "aws_subnet" "public_subnet_2" {
   }
 }
 
-# 2. Route Table Association for the second subnet
+#  Route Table Association for the second subnet
 resource "aws_route_table_association" "public_assoc_2" {
   subnet_id      = aws_subnet.public_subnet_2.id
   route_table_id = aws_route_table.public_rt.id
 }
 
-# 3. Application Load Balancer
+#  Application Load Balancer
 resource "aws_lb" "app_alb" {
   name               = "ecommerce-app-alb"
   internal           = false
@@ -157,7 +187,7 @@ resource "aws_lb" "app_alb" {
   }
 }
 
-# 4. Target Group (Where the ALB sends traffic)
+#  Target Group (Where the ALB sends traffic)
 resource "aws_lb_target_group" "web_tg" {
   name     = "ecommerce-web-tg"
   port     = 80
@@ -165,14 +195,9 @@ resource "aws_lb_target_group" "web_tg" {
   vpc_id   = aws_vpc.main.id
 }
 
-# 5. Target Group Attachment (Registers your EC2 instance)
-resource "aws_lb_target_group_attachment" "web_tg_attach" {
-  target_group_arn = aws_lb_target_group.web_tg.arn
-  target_id        = aws_instance.web_server.id
-  port             = 80
-}
 
-# 6. ALB Listener (Rules for incoming traffic)
+
+#  ALB Listener (Rules for incoming traffic)
 resource "aws_lb_listener" "web_listener" {
   load_balancer_arn = aws_lb.app_alb.arn
   port              = "80"

@@ -1,4 +1,3 @@
-Markdown
 # Cloud-Native Provisioner
 
 [![Terraform](https://img.shields.io/badge/Terraform-1.5+-623CE4.svg)](https://www.terraform.io/)
@@ -21,7 +20,8 @@ Currently, this project provisions the following foundational resources:
 
 - **High-Availability Networking:** A dedicated Virtual Private Cloud (VPC) spanning multiple Availability Zones (`us-east-1a` and `us-east-1b`) with public subnets, an Internet Gateway, and custom routing.
 - **Load Balancing:** An AWS Application Load Balancer (ALB) routing internet traffic securely to Target Groups.
-- **Compute:** An Ubuntu 22.04 LTS EC2 instance bootstrapped with an Apache web server.
+- **Compute & Auto Scaling:** An Auto Scaling Group (ASG) managing a fault-tolerant fleet of Ubuntu 22.04 LTS instances across multiple Availability Zones. 
+- **Bootstrapping:** EC2 Launch Templates utilizing an IMDSv2 `user_data` script to automatically configure Apache web servers and dynamically display the active Availability Zone for Load Balancer verification.
 - **Security:** A custom Security Group restricting inbound traffic to HTTP (Port 80) and SSH (Port 22).
 - **State Management:** A remote backend utilizing an AWS S3 bucket for state storage and a DynamoDB table for state locking.
 
@@ -56,7 +56,7 @@ To provision the infrastructure, run the following commands sequentially from th
    terraform init
    ```
 
-2. **Format and Validate the Code Syntax**
+2. **Format and Validate the Code**
    ```bash
    terraform fmt
    terraform validate
@@ -74,7 +74,7 @@ To provision the infrastructure, run the following commands sequentially from th
 
 ## Outputs
 
-Upon a successful `terraform apply`, the terminal will output the live DNS name of the Application Load Balancer. Paste this URL into your browser to view the live web server:
+Upon a successful `terraform apply`, the terminal will output the live DNS name of the Application Load Balancer. Paste this URL into your browser to view the web server, and refresh the page to see the Load Balancer distribute traffic across Availability Zones:
 
 ```
 Outputs:
