@@ -14,7 +14,8 @@ A production-ready Infrastructure as Code (IaC) capstone project. This repositor
 - [Prerequisites](#prerequisites)
 - [Backend Initialization](#backend-initialization)
 - [Usage and Deployment](#usage-and-deployment)
-- [Outputs](#outputs)
+- [Application Deployment](#application-deployment)
+- [Tear Down the Infrastructure](#tear-down-the-infrastructure)
 
 ## Architecture Overview
 
@@ -90,8 +91,8 @@ Deploy the containerized application using the provided Kubernetes manifests:
 
 ```bash
 kubectl apply -f k8s-manifests/
-Retrieve the live Load Balancer URL to view the application:
 ```
+Retrieve the live Load Balancer URL to view the application:
 
 ```bash
 kubectl get svc ecommerce-web-service
