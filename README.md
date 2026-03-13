@@ -22,8 +22,9 @@ Currently, this project provisions the following foundational resources:
 
 - **High-Availability Networking:** A dedicated Virtual Private Cloud (VPC) spanning multiple Availability Zones (`us-east-1a` and `us-east-1b`) with public subnets, an Internet Gateway, and custom routing.
 - **Load Balancing:** An AWS Application Load Balancer (ALB) routing internet traffic securely to Target Groups.
-- **Compute & Auto Scaling:** An Auto Scaling Group (ASG) managing a fault-tolerant fleet of Ubuntu 22.04 LTS instances across multiple Availability Zones. 
-- **Bootstrapping:** EC2 Launch Templates utilizing an IMDSv2 `user_data` script to automatically configure Apache web servers and dynamically display the active Availability Zone for Load Balancer verification.
+- **Compute & Orchestration:** An Amazon Elastic Kubernetes Service (EKS) cluster managing a fault-tolerant Node Group of `t3.medium` instances across multiple Availability Zones.
+- **Containerization:** A custom web application packaged as a Docker container, hosted on Docker Hub, and deployed to the EKS cluster using declarative Kubernetes `Deployment` and `Service` manifests.
+- **Dynamic Load Balancing:** An AWS Classic Load Balancer dynamically provisioned by the Kubernetes Control Plane to expose the application pods to the internet.
 - **Security:** A custom Security Group restricting inbound traffic to HTTP (Port 80) and SSH (Port 22).
 - **State Management:** A remote backend utilizing an AWS S3 bucket for state storage and a DynamoDB table for state locking.
 
@@ -77,13 +78,23 @@ To provision the infrastructure, run the following commands sequentially from th
    terraform apply
    ```
 
-## Outputs
+## Application Deployment
 
-Upon a successful `terraform apply`, the terminal will output the live DNS name of the Application Load Balancer. Paste this URL into your browser to view the web server, and refresh the page to see the Load Balancer distribute traffic across Availability Zones:
+Once the EKS cluster is successfully provisioned via Terraform, authenticate your local terminal with the cluster:
 
+```bash
+aws eks update-kubeconfig --region us-east-1 --name ecommerce-eks-cluster
 ```
-Outputs:
-alb_dns_name = "ecommerce-app-alb-xxxxxxxxx.us-east-1.elb.amazonaws.com"
+
+Deploy the containerized application using the provided Kubernetes manifests:
+
+```bash
+kubectl apply -f k8s-manifests/
+Retrieve the live Load Balancer URL to view the application:
+```
+
+```bash
+kubectl get svc ecommerce-web-service
 ```
 
 ## Tear Down the Infrastructure
