@@ -3,10 +3,10 @@ kind: Service
 metadata:
   name: ecommerce-web-service
 spec:
-  type: LoadBalancer
+  type: {{ .Values.service.type }}
   selector:
     app: ecommerce-web
   ports:
     - protocol: TCP
-      port: 80
+      port: {{ .Values.service.port }}
       targetPort: 80

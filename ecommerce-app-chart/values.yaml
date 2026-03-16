@@ -1,0 +1,11 @@
+# Default values for ecommerce-app-chart.
+
+replicaCount: 3
+
+image:
+  repository: martins984/ecommerce-web-app
+  tag: "v1"
+
+service:
+  type: LoadBalancer
+  port: 80

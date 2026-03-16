@@ -5,7 +5,7 @@ metadata:
   labels:
     app: ecommerce-web
 spec:
-  replicas: 3
+  replicas: {{ .Values.replicaCount }}
   selector:
     matchLabels:
       app: ecommerce-web
@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
       - name: ecommerce-web-container
-        image: martins984/ecommerce-web-app:v1
+        image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
         ports:
         - containerPort: 80
         resources:
