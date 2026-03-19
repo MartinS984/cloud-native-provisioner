@@ -98,6 +98,23 @@ Retrieve the live Load Balancer URL to view the application:
 kubectl get svc ecommerce-web-service
 ```
 
+## Continuous Delivery (GitOps)
+
+This project utilizes **ArgoCD** for declarative, GitOps-based continuous delivery. Instead of manual deployments, ArgoCD monitors the `ecommerce-app-chart` Helm package in this repository and automatically synchronizes the cluster state.
+
+To test the GitOps pipeline locally:
+
+1. **Start a local cluster:**
+   ```bash
+   minikube start --driver=docker
+   ```
+Install ArgoCD:
+
+```bash
+kubectl create namespace argocd
+kubectl apply -n argocd -f [https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml](https://raw.githubusercontent.com/argoproj/argo-cd/stable/manifests/install.yaml)
+```
+
 ## Tear Down the Infrastructure
 To prevent idle cloud charges:
 
